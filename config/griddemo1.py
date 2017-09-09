@@ -123,5 +123,7 @@ if '__main__' == __name__:
         for k,v in c.iteritems():
             print k, ':' ,v
 
+    import sys
+    sys.path.append('../..')
     from storage import create_table
-    create_table(conf,'griddemo1')
+    create_table(conf,__file__.split('.')[0].replace('_','-'))
