@@ -3,9 +3,9 @@ from os.path import expanduser
 sys.path.append(expanduser('~'))
 from itertools import izip
 from random import random
-from datetime import datetime
 from cred import cred
 from config.griddemo1 import conf
+from parse_support import pretty_print
 
 
 tags = [c['dbtag'] for c in conf]
@@ -25,39 +25,15 @@ vargens = [random_var(380*random(),2*random()) for i in range(len(tags))]
 #exit()
 
 
-def pretty_print(d):
-    """Pretty-print to terminal the given dictionary of readings"""
-    max_len = max([len(k) for k in d.keys()])
-    if 'node' in d.keys():
-        print('From {}:'.format(d['node']))
-    if 'ReceptionTime' in d.keys():
-        tmp = d['ReceptionTime']
-        if isinstance(tmp,float):
-            tmp = datetime.fromtimestamp(tmp)
-        print('Received at {}'.format(tmp))
-    if 'Timestamp' in d.keys():
-        tmp = d['Timestamp']
-        if isinstance(tmp,float):
-            tmp = datetime.fromtimestamp(tmp)
-        print('Sampled at {}'.format(tmp))
-    if 'ts' in d.keys():
-        tmp = d['ts']
-        if isinstance(tmp,float):
-            tmp = datetime.fromtimestamp(tmp)
-        print('Sampled at {}'.format(tmp))
-    for k in sorted(set(d.keys()) - set(['Timestamp','node','ReceptionTime','ts'])):
-        print('{}{}{}'.format(k,' '*(max_len + 4 - len(k)),d[k]))
-
-
-
 exchange = 'grid'
 node_id = socket.gethostname()
 routing_key = node_id + '.r'
 #routing_key = 'griddemo1.r'
+user,passwd = cred['rabbitmq']
 
 
 def mq_init():
-    credentials = pika.PlainCredentials(cred['rabbitmq'][0],cred['rabbitmq'][1])
+    credentials = pika.PlainCredentials(user,passwd)
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost',5672,'/',credentials))
     channel = connection.channel()
     channel.exchange_declare(exchange=exchange,exchange_type='topic',durable=True)
@@ -90,6 +66,7 @@ for v in izip(*vargens):
                                   routing_key=routing_key,
                                   body=line,
                                   properties=pika.BasicProperties(delivery_mode=1,
+                                                                  user_id=user,
                                                                   content_type='text/plain',
                                                                   expiration=str(60*24*3600*1000),
                                                                   timestamp=time.time()))
