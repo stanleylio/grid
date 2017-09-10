@@ -55,8 +55,7 @@ def callback(ch,method,properties,body):
             except TypeError:
                 pass
 
-        #store.insert(d['node'],d)
-        print properties
+        store.insert(properties.user_id,d)
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
     except MySQLdb.OperationalError:
