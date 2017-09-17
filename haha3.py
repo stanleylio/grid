@@ -53,8 +53,8 @@ def taskRandomGen():
     v = dict(zip(tags,v))
     v['ts'] = time.time()
 
-#    print('\x1b[2J\x1b[;H')
-#    pretty_print(v)
+    print('\x1b[2J\x1b[;H')
+    pretty_print(v)
     line = json.dumps(v,separators=(',',':'))
     #continue
     
