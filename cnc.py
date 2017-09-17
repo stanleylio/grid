@@ -1,4 +1,4 @@
-import pika,sys,time,traceback,logging,json
+import pika,sys,time,traceback,logging,json,argparse
 from os.path import expanduser
 sys.path.append(expanduser('~'))
 from cred import cred
@@ -7,6 +7,11 @@ from cred import cred
 exchange = 'grid_cnc'
 queue_name = 'to_griddemo1'
 user,passwd = cred['rabbitmq']
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('sample_interval_second',type=float)
+args = parser.parse_args()
 
 
 def mq_init():
@@ -20,35 +25,33 @@ def mq_init():
 connection,channel = None,None
 
 
-config = {'report_interval_second':1}
+if args.sample_interval_second < 0.002 or args.sample_interval_second > 3600:
+    logging.warning('something something out of range...')
+    exit()
+
+config = {'sample_interval_second':args.sample_interval_second}
 
 
-while True:
-    #line = '{}: command and control'.format(time.time())
-    #print(line)
-    try:
-        if connection is None or channel is None:
-            logging.info('Connection to local exchange closed')
-            connection,channel = mq_init()
-            logging.info('Connection to local exchange re-established')
+#line = '{}: command and control'.format(time.time())
+#print(line)
+if connection is None or channel is None:
+    logging.info('Connection to local exchange closed')
+    connection,channel = mq_init()
+    logging.info('Connection to local exchange re-established')
 
-        config['ts'] = time.time()
-        line = json.dumps(config,separators=(',',':'))
-        print(line)
-        
-        if connection is not None and channel is not None:
-            res = channel.basic_publish(exchange,     # name of exchange
-                                  '',           # routing key
-                                  line,         # payload
-                                  properties=pika.BasicProperties(delivery_mode=2,
-                                                                  user_id=user,
-                                                                  content_type='text/plain',
-                                                                  expiration=str(60*1000),
-                                                                  timestamp=time.time()))
-            print(res)
-    except:
-        traceback.print_exc()
+config['ts'] = time.time()
+line = json.dumps(config,separators=(',',':'))
+print(line)
 
-    time.sleep(5)
+if connection is not None and channel is not None:
+    res = channel.basic_publish(exchange,     # name of exchange
+                          '',           # routing key
+                          line,         # payload
+                          properties=pika.BasicProperties(delivery_mode=2,
+                                                          user_id=user,
+                                                          content_type='text/plain',
+                                                          expiration=str(60*1000),
+                                                          timestamp=time.time()))
+    print(res)
 
 connection.close()
