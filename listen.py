@@ -45,7 +45,7 @@ channel.queue_bind(exchange=exchange,
 dbfile = '/home/griddemo1/config.db'
 conn = sqlite3.connect(dbfile)
 cursor = conn.cursor()
-cmd = 'CREATE TABLE IF NOT EXISTS `config` (ts DOUBLE, interval DOUBLE);'
+cmd = 'CREATE TABLE IF NOT EXISTS `config` (ts DOUBLE, sample_interval_second DOUBLE);'
 cursor.execute(cmd)
 
 
