@@ -1,3 +1,9 @@
+# Support for changing sample rate on the fly, from the server side
+#
+# Stanley H.I. Lio
+# hlio@hawaii.edu
+# University of Hawaii
+# All Rights Reserved. 2017
 import os,sys,traceback,time,logging,pika,socket,json,xmlrpclib
 from os.path import expanduser
 sys.path.append(expanduser('~'))
@@ -18,7 +24,6 @@ def random_var(m,sd):
     while True:
         v = v + sd*(2*random() - 1)
         yield round(v,3)
-
 vargens = [random_var(380*random(),2*random()) for i in range(len(tags))]
 
 #for v in izip(*vargens):
@@ -31,9 +36,10 @@ exchange = 'grid'
 node_id = socket.gethostname()
 routing_key = node_id + '.r'
 user,passwd = cred['rabbitmq']
-reconnect_delay = 5     # seconds. wait this much before retrying connection
-
-interval = 0.1
+reconnect_delay_second_second = 5     # seconds. wait this much before retrying connection
+config_check_interval_second = 1
+sample_interval_second = 1
+# need: default (fail-safe), min, max
 
 
 def mq_init():
@@ -43,6 +49,7 @@ def mq_init():
     channel.exchange_declare(exchange=exchange,exchange_type='topic',durable=True)
     return connection,channel
 
+# don't call mq_init() here or else the script never gets a chance to run when network is down
 connection,channel = None,None
 
 
@@ -60,7 +67,7 @@ def taskRandomGen():
     
     try:
         if connection is None or channel is None:
-            #logging.info('Connection to local exchange closed')
+            logging.info('Connection to local exchange closed')
             connection,channel = mq_init()
             logging.info('Connection to local exchange re-established')
 
@@ -77,17 +84,17 @@ def taskRandomGen():
             logging.error('wut?')
     except pika.exceptions.ConnectionClosed:
         connection,channel = None,None
-        time.sleep(reconnect_delay)
+        time.sleep(reconnect_delay_second)
 
-    reactor.callLater(interval,taskRandomGen)
+    reactor.callLater(sample_interval_second,taskRandomGen)
 
 
 def taskCheckConfig():
     try:
-        global interval
+        global sample_interval_second
         proxy = xmlrpclib.ServerProxy("http://localhost:8000/")
         c = proxy.get_config()
-        interval = c['interval']
+        sample_interval_second = c['sample_interval_second']
     except socket.error:
         traceback.print_exc()
 
@@ -95,8 +102,8 @@ def taskCheckConfig():
 logging.info(__name__ + ' is ready')
 
 #LoopingCall(taskRandomGen).start(0.1)
-reactor.callLater(interval,taskRandomGen)
-LoopingCall(taskCheckConfig).start(1)
+reactor.callLater(sample_interval_second,taskRandomGen)
+LoopingCall(taskCheckConfig).start(config_check_interval_second,now=True)
 
 reactor.run()
 if connection is not None:

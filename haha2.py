@@ -1,3 +1,9 @@
+# 22-var power monitor mockup
+#
+# Stanley H.I. Lio
+# hlio@hawaii.edu
+# University of Hawaii
+# All Rights Reserved. 2017
 import os,sys,traceback,time,logging,pika,socket,json
 from os.path import expanduser
 sys.path.append(expanduser('~'))
