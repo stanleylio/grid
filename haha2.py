@@ -53,6 +53,9 @@ for v in izip(*vargens):
     print('\x1b[2J\x1b[;H')
     pretty_print(v)
     line = json.dumps(v,separators=(',',':'))
+
+    # {"v":"[version]","p":"[payload]"}
+    
     #continue
     
     try:
