@@ -1,3 +1,9 @@
+# time.time() firehose
+#
+# Stanley H.I. Lio
+# hlio@hawaii.edu
+# University of Hawaii
+# All Rights Reserved. 2017
 import os,sys,traceback,time,logging,pika,socket
 from cred import cred
 

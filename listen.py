@@ -1,3 +1,10 @@
+# Listen for config change from server via RabbitMQ
+# Respond to config param query
+#
+# Stanley H.I. Lio
+# hlio@hawaii.edu
+# University of Hawaii
+# All Rights Reserved. 2017
 import pika,socket,traceback,sys,time,logging,json,sqlite3
 from os.path import expanduser
 sys.path.append(expanduser('~'))
@@ -59,8 +66,8 @@ def read(queue_object):
     if body:
         try:
             d = json.loads(body.strip())
-            cmd = 'INSERT INTO `config` (ts,interval) VALUES (?,?)'
-            cursor.execute(cmd,(d['ts'],d['interval']))
+            cmd = 'INSERT INTO `config` (ts,sample_interval_second) VALUES (?,?)'
+            cursor.execute(cmd,(d['ts'],d['sample_interval_second']))
             conn.commit()
             print(d)
             #ch.basic_ack(delivery_tag=method.delivery_tag)
@@ -87,12 +94,12 @@ class P(xmlrpc.XMLRPC):
         dbfile = '/home/griddemo1/config.db'
         conn = sqlite3.connect(dbfile)
         cursor = conn.cursor()
-        cmd = 'SELECT ts,interval FROM `config` ORDER BY ts DESC LIMIT 1;'
+        cmd = 'SELECT ts,sample_interval_second FROM `config` ORDER BY ts DESC LIMIT 1;'
         cursor.execute(cmd)
         conn.commit()
         row = cursor.fetchone()
         #print(row)
-        return dict(zip(['ts','interval'],list(row)))
+        return dict(zip(['ts','sample_interval_second'],list(row)))
     
 
 logging.info(__file__ + ' is ready')

@@ -20,7 +20,7 @@ def mq_init():
 connection,channel = None,None
 
 
-config = {'interval':1}
+config = {'report_interval_second':1}
 
 
 while True:
