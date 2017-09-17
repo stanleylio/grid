@@ -1,4 +1,4 @@
-import os,sys,traceback,time,logging,pika,socket,json
+import os,sys,traceback,time,logging,pika,socket,json,xmlrpclib
 from os.path import expanduser
 sys.path.append(expanduser('~'))
 from itertools import izip
@@ -53,8 +53,8 @@ def taskRandomGen():
     v = dict(zip(tags,v))
     v['ts'] = time.time()
 
-    print('\x1b[2J\x1b[;H')
-    pretty_print(v)
+#    print('\x1b[2J\x1b[;H')
+#    pretty_print(v)
     line = json.dumps(v,separators=(',',':'))
     #continue
     
@@ -83,15 +83,20 @@ def taskRandomGen():
 
 
 def taskCheckConfig():
-    global interval
-    #interval = ...
+    try:
+        global interval
+        proxy = xmlrpclib.ServerProxy("http://localhost:8000/")
+        c = proxy.get_config()
+        interval = c['interval']
+    except socket.error:
+        traceback.print_exc()
 
 
 logging.info(__name__ + ' is ready')
 
 #LoopingCall(taskRandomGen).start(0.1)
 reactor.callLater(interval,taskRandomGen)
-LoopingCall(taskCheckConfig).start(5)
+LoopingCall(taskCheckConfig).start(1)
 
 reactor.run()
 if connection is not None:
