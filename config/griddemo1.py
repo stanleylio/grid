@@ -1,4 +1,3 @@
-
 name = 'griddemo1'
 location = 'Classified'
 note = 'bbb-based, dummy data, norminal 1 sps'
@@ -14,12 +13,10 @@ conf = [
         'dbtag':'AVRMS',
         'unit':'V',
     },
-    
     {
         'dbtag':'BVRMS',
         'unit':'V',
     },
-    
     {
         'dbtag':'CVRMS',
         'unit':'V',
