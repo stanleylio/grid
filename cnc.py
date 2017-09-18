@@ -39,7 +39,7 @@ if connection is None or channel is None:
     connection,channel = mq_init()
     logging.info('Connection to local exchange re-established')
 
-config['server_time'] = time.time()
+#config['server_time'] = time.time()
 m = {'a':'set','d':config}
 line = json.dumps(m,separators=(',',':'))
 print(line)
