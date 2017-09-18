@@ -16,6 +16,9 @@ from config.griddemo1 import conf
 from parse_support import pretty_print
 
 
+logging.basicConfig(level=logging.DEBUG)
+
+
 tags = [c['dbtag'] for c in conf]
 
 
@@ -60,8 +63,8 @@ def taskRandomGen():
     v = dict(zip(tags,v))
     v['ts'] = time.time()
 
-    print('\x1b[2J\x1b[;H')
-    pretty_print(v)
+#    print('\x1b[2J\x1b[;H')
+#    pretty_print(v)
     line = json.dumps(v,separators=(',',':'))
     #continue
     
@@ -92,10 +95,11 @@ def taskRandomGen():
 def taskCheckConfig():
     try:
         global sample_interval_second
-        proxy = xmlrpclib.ServerProxy("http://localhost:8000/")
-        c = proxy.get_config()
-        sample_interval_second = c['sample_interval_second']
+        proxy = xmlrpclib.ServerProxy('http://localhost:8000/')
+        sample_interval_second = proxy.get_config('sample_interval_second')
     except socket.error:
+        traceback.print_exc()
+    except xmlrpclib.Fault:
         traceback.print_exc()
 
 
