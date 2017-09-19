@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # This taps into the local RabbitMQ exchange and store .samples msgs into MySQL
 #
 # Stanley H.I. Lio
