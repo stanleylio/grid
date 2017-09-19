@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # Listen for config change from server via RabbitMQ
 # Respond to config param query via XMPRPC
 #
@@ -16,7 +17,7 @@ from config.config_support import Config
 from cred import cred
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 exchange_name = 'grid_cnc'
@@ -45,7 +46,8 @@ def read(queue_object):
     ch,method,properties,body = yield queue_object.get()
     if body:
         try:
-            d = json.loads(body.strip())
+            #d = json.loads(body.strip())
+            d = json.loads(body.decode("utf-8","strict"))
             assert 'a' in d and 'd' in d;
             #{'a':'set','d':...}
             if d.get('a',None) != 'set':

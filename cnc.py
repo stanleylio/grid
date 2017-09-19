@@ -1,3 +1,8 @@
+#/usr/bin/python3
+# "Command and Control"
+# Change the parameter "sample_interval_second" with the argument passed, like so:
+#   python3 cnc.py 0.5
+# griddemo1 sample interval is now 0.5 second.
 import pika,sys,time,traceback,logging,json,argparse
 from os.path import expanduser
 sys.path.append(expanduser('~'))
@@ -25,7 +30,7 @@ def mq_init():
 connection,channel = None,None
 
 
-if args.sample_interval_second < 0.002 or args.sample_interval_second > 3600:
+if args.sample_interval_second < 0.005 or args.sample_interval_second > 3600:
     logging.warning('something something out of range...')
     exit()
 
@@ -51,8 +56,7 @@ if connection is not None and channel is not None:
                           properties=pika.BasicProperties(delivery_mode=2,
                                                           user_id=user,
                                                           content_type='text/plain',
-                                                          expiration=str(60*1000),
-                                                          timestamp=time.time()))
+                                                          expiration=str(60*1000)))
     print(res)
 
 connection.close()

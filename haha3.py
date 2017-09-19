@@ -1,13 +1,14 @@
+#!/usr/bin/python3
 # Support for changing sample rate on the fly, from the server side
 #
 # Stanley H.I. Lio
 # hlio@hawaii.edu
 # University of Hawaii
 # All Rights Reserved. 2017
-import os,sys,traceback,time,logging,pika,socket,json,xmlrpclib
+import os,sys,traceback,time,logging,pika,socket,json,xmlrpc.client
 from os.path import expanduser
 sys.path.append(expanduser('~'))
-from itertools import izip
+#from itertools import izip
 from random import random
 from twisted.internet.task import LoopingCall
 from twisted.internet import reactor
@@ -16,7 +17,7 @@ from config.griddemo1 import conf
 from parse_support import pretty_print
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 tags = [c['dbtag'] for c in conf]
@@ -75,14 +76,21 @@ def taskRandomGen():
             logging.info('Connection to local exchange re-established')
 
         if connection is not None and channel is not None:
-            channel.basic_publish(exchange=exchange,
+            '''channel.basic_publish(exchange=exchange,
                                   routing_key=routing_key,
                                   body=line,
                                   properties=pika.BasicProperties(delivery_mode=2,
                                                                   user_id=user,
                                                                   content_type='text/plain',
                                                                   expiration=str(7*24*3600*1000),
-                                                                  timestamp=time.time()))
+                                                                  timestamp=time.time()))'''
+            channel.basic_publish(exchange,
+                                  routing_key,
+                                  line,
+                                  properties=pika.BasicProperties(delivery_mode=2,
+                                                                  user_id=user,
+                                                                  content_type='text/plain',
+                                                                  expiration=str(7*24*3600*1000)))
         else:
             logging.error('wut?')
     except pika.exceptions.ConnectionClosed:
@@ -95,11 +103,11 @@ def taskRandomGen():
 def taskCheckConfig():
     try:
         global sample_interval_second
-        proxy = xmlrpclib.ServerProxy('http://localhost:8000/')
+        proxy = xmlrpc.client.ServerProxy('http://localhost:8000/')
         sample_interval_second = proxy.get_config('sample_interval_second')
     except socket.error:
         traceback.print_exc()
-    except xmlrpclib.Fault:
+    except xmlrpc.Fault:
         traceback.print_exc()
 
 
