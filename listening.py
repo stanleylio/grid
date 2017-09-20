@@ -23,7 +23,8 @@ logging.basicConfig(level=logging.INFO)
 exchange_name = 'grid_cnc'
 queue_name = 'to_griddemo1'
 routing_key = 'griddemo1.c'
-user,passwd = cred['rabbitmq']
+nodeid = socket.gethostname()
+user,passwd = nodeid,cred['rabbitmq']
 config_file = '/home/griddemo1/config.db'
 
 
@@ -46,6 +47,7 @@ def read(queue_object):
     ch,method,properties,body = yield queue_object.get()
     if body:
         try:
+            logging.debug(body)
             #d = json.loads(body.strip())
             d = json.loads(body.decode("utf-8","strict"))
             assert 'a' in d and 'd' in d;
@@ -71,7 +73,9 @@ def read(queue_object):
 class P(xmlrpc.XMLRPC):
     def xmlrpc_get_config(self,variable_name):
         try:
-            return config.get(variable_name)
+            v = config.get(variable_name)
+            logging.debug('{} == {}'.format(variable_name,v))
+            return v
         except:
             logging.warning('Using default for {}'.format(variable_name))
             return 1    # safe defaults? where to store them? boundaries? TODO TODO TODO
