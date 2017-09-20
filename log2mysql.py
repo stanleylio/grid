@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 exchange = 'grid'
 nodeid = socket.gethostname()
 
-credentials = pika.PlainCredentials(cred['rabbitmq'][0],cred['rabbitmq'][1])
+credentials = pika.PlainCredentials(nodeid,cred['rabbitmq'])
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost',5672,'/',credentials))
 channel = connection.channel()
 #channel.queue_delete(queue='nameofqueue')
