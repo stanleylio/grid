@@ -53,14 +53,17 @@ m = {'a':'set','d':config}
 line = json.dumps(m,separators=(',',':'))
 print(line)
 
-if connection is not None and channel is not None:
-    res = channel.basic_publish(exchange,     # name of exchange
-                          '',           # routing key
-                          line,         # payload
-                          properties=pika.BasicProperties(delivery_mode=2,
-                                                          user_id=user,
-                                                          content_type='text/plain',
-                                                          expiration=str(60*1000)))
-    print(res)
+
+while True:
+    if connection is not None and channel is not None:
+        res = channel.basic_publish(exchange,     # name of exchange
+                              '',           # routing key
+                              line,         # payload
+                              properties=pika.BasicProperties(delivery_mode=2,
+                                                              #user_id=user,    # this one needs more reading.
+                                                              content_type='text/plain',
+                                                              expiration=str(60*1000)))
+        print(res)
+    time.sleep(1)
 
 connection.close()
