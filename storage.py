@@ -2,11 +2,14 @@ import MySQLdb,sys
 from os.path import expanduser
 sys.path.append(expanduser('~'))
 from cred import cred
+from socket import gethostname
 
 
-def create_table(conf,table,dbname='grid',user=None,password=None,host='localhost',noreceptiontime=False):
-    if user is None or password is None:
-        user,passwd = cred['mysql']
+def create_table(conf,table,dbname='grid',user=None,passwd=None,host='localhost',noreceptiontime=False):
+    if user is None:
+        user = cred['mysql'][0]
+    if passwd is None:
+        passwd = cred['mysql'][1]
         
     if not noreceptiontime:
         conf.insert(0,{'dbtag':'rt','dbtype':'DOUBLE PRIMARY KEY'})
@@ -21,9 +24,12 @@ def create_table(conf,table,dbname='grid',user=None,password=None,host='localhos
 
 
 class storage():
-    def __init__(self,dbname='grid',user='root',passwd=None,host='localhost'):
+    def __init__(self,dbname='grid',user=None,passwd=None,host='localhost'):
+        if user is None:
+            user = cred['mysql'][0]
         if passwd is None:
-            user,passwd = cred['mysql']
+            passwd = cred['mysql'][1]
+
         self._dbname = dbname
 
         #print(host,user,passwd,dbname)
