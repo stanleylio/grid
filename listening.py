@@ -20,12 +20,12 @@ from cred import cred
 logging.basicConfig(level=logging.INFO)
 
 
-exchange_name = 'grid_cnc'
-queue_name = 'to_griddemo1'
-routing_key = 'griddemo1.c'
 nodeid = socket.gethostname()
+exchange_name = 'grid_cnc'
+queue_name = 'to_' + nodeid
+routing_key = nodeid + '.c'
 user,passwd = nodeid,cred['rabbitmq']
-config_file = '/home/griddemo1/config.db'
+config_file = expanduser('~/config.db')
 
 
 config = Config(config_file)

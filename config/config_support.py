@@ -8,6 +8,13 @@
 # University of Hawaii
 # All Rights Reserved. 2017
 import socket,traceback,sys,time,sqlite3,logging
+from importlib import import_module
+
+
+def import_node_config(node=None):
+    if node is None:
+        node = socket.gethostname()
+    return import_module('config.{node}'.format(node=node))
 
 
 class Config():
