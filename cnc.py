@@ -3,15 +3,19 @@
 # Change the parameter "sample_interval_second" with the argument passed, like so:
 #   python3 cnc.py 0.5
 # griddemo1 sample interval is now 0.5 second.
-import pika,sys,time,traceback,logging,json,argparse
+import pika,sys,time,traceback,logging,json,argparse,socket
 from os.path import expanduser
 sys.path.append(expanduser('~'))
 from cred import cred
 
 
+logging.basicConfig(level=logging.WARNING)
+
+
 exchange = 'grid_cnc'
 queue_name = 'to_griddemo1'
-user,passwd = cred['rabbitmq']
+nodeid = socket.gethostname()
+user,passwd = nodeid,cred['rabbitmq']
 
 
 parser = argparse.ArgumentParser()
