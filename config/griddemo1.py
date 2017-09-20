@@ -117,10 +117,10 @@ conf = [
 if '__main__' == __name__:
     for c in conf:
         print('- - -')
-        for k,v in c.iteritems():
+        for k,v in c.items():
             print(k,':',v)
 
     import sys
-    sys.path.append('../..')
+    sys.path.append('..')
     from storage import create_table
     create_table(conf,__file__.split('.')[0].replace('_','-'))
