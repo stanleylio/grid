@@ -33,14 +33,18 @@ config = Config(config_file)
 
 @defer.inlineCallbacks
 def run(connection):
-    channel = yield connection.channel()
-    exchange = yield channel.exchange_declare(exchange=exchange_name,exchange_type='fanout',durable=True)
-    queue = yield channel.queue_declare(queue=queue_name,durable=True,exclusive=False,arguments={'x-message-ttl': 24*3600*1000})
-    yield channel.queue_bind(exchange=exchange_name,queue=queue_name,routing_key=routing_key)
-    yield channel.basic_qos(prefetch_count=5)
-    queue_object,consumer_tag = yield channel.basic_consume(queue=queue_name,no_ack=False)
-    l = task.LoopingCall(read,queue_object)
-    l.start(0.01)
+    try:
+        channel = yield connection.channel()
+        exchange = yield channel.exchange_declare(exchange=exchange_name,exchange_type='fanout',durable=True)
+        queue = yield channel.queue_declare(queue=queue_name,durable=True,exclusive=False,arguments={'x-message-ttl': 24*3600*1000})
+        yield channel.queue_bind(exchange=exchange_name,queue=queue_name,routing_key=routing_key)
+        yield channel.basic_qos(prefetch_count=5)
+        queue_object,consumer_tag = yield channel.basic_consume(queue=queue_name,no_ack=False)
+        l = task.LoopingCall(read,queue_object)
+        l.start(0.01)
+    except:
+        logging.exception('Cannot connect to local C&C exchange')
+        sys.exit()
 
 @defer.inlineCallbacks
 def read(queue_object):

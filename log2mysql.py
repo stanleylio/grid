@@ -45,6 +45,9 @@ def callback(ch,method,properties,body):
     #print(method.routing_key,body)
     try:
         d = json.loads(body)
+        #version = d['v']
+        #from = d['from']
+        d = d['d']
         d['rt'] = time.time()
         print('= = = = = = = = = = = = = = =')
         pretty_print(d)
