@@ -49,7 +49,11 @@ Return True if it new_value is different from variable's previous value; False o
             self.cursor.execute(cmd)
             self.conn.commit()
 
-        tmp = self.get(variable_name)
+        try:
+            tmp = self.get(variable_name)
+        except LookupError:
+            logging.info('Variable {} is not yet defined'.format(variable_name))
+            tmp = None
         if tmp is None or tmp != new_value:
             logging.debug('variable {} set to new value {}'.format(variable_name,new_value))
             cmd = 'INSERT INTO `{variable_name}` (`ts`,`{variable_name}`) VALUES ({ts},{new_value})'.\
