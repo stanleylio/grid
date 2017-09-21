@@ -57,23 +57,20 @@ def read(queue_object):
             #{'a':'set','node':'griddemoX','d':...}
             if d.get('node',None) != nodeid:
                 logging.debug('no recipient, or message not for me. ignore')
-                yield ch.basic_ack(delivery_tag=method.delivery_tag)
-            if 'a' not in d or 'd' not in d:
+            elif 'a' not in d or 'd' not in d:
                 logging.warning('missing action and/or data')
-                yield ch.basic_ack(delivery_tag=method.delivery_tag)
-            if d.get('a',None) != 'set':
+            elif d.get('a',None) != 'set':
                 logging.debug('not \'set\'. ignore')
-                yield ch.basic_ack(delivery_tag=method.delivery_tag)
+            else:
+                d = d['d']
+                # have to give up 'server_time' for now...
+                #assert 'server_time' in d and type(d['server_time']) in [float,int]
 
-            d = d['d']
-            # have to give up 'server_time' for now...
-            #assert 'server_time' in d and type(d['server_time']) in [float,int]
-
-            for k in d:
-                logging.info('Attempt to set {} to {}'.format(k,d[k]))
-                if config.set(k,d[k]):
-                    logging.info('{} changed to {}'.format(k,d[k]))
-            
+                for k in d:
+                    logging.info('Attempt to set {} to {}'.format(k,d[k]))
+                    if config.set(k,d[k]):
+                        logging.info('{} changed to {}'.format(k,d[k]))
+                
             #ch.basic_ack(delivery_tag=method.delivery_tag)
             yield ch.basic_ack(delivery_tag=method.delivery_tag)
         except:
