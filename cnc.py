@@ -34,7 +34,7 @@ def mq_init():
 connection,channel = None,None
 
 
-if args.sample_interval_second < 0.005 or args.sample_interval_second > 3600:
+if args.sample_interval_second <= 0.01 or args.sample_interval_second > 3600:
     logging.warning('something something out of range...')
     exit()
 

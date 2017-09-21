@@ -31,7 +31,6 @@ class storage():
             passwd = cred['mysql'][1]
 
         self._dbname = dbname
-        self._schema_cache = {}
 
         #print(host,user,passwd,dbname)
         self._conn = MySQLdb.connect(host=host,
@@ -41,10 +40,8 @@ class storage():
         self._cur = self._conn.cursor()
 
     def get_list_of_columns(self,table):
-        if table not in self._schema_cache:
-            self._cur.execute('SELECT * FROM {}.`{}` LIMIT 1;'.format(self._dbname,table))
-            self._schema_cache[table] = [tmp[0] for tmp in self._cur.description]
-        return self._schema_cache[table]
+        self._cur.execute('SELECT * FROM {}.`{}` LIMIT 1;'.format(self._dbname,table))
+        return [tmp[0] for tmp in self._cur.description]
 
     def read_time_range(self,table,time_col,cols,begin,end):
         """Retrieve records in the given time period.
@@ -81,16 +78,8 @@ class storage():
 
     def insert(self,table,sample,autocommit=True):
         # strip the keys not defined in the db
-        # the two methods yield the same ack rate - looks like this is not the bottleneck.
         sample = {k:sample[k] for k in self.get_list_of_columns(table) if k in sample}
         cols,vals = zip(*sample.items())
-        #cols = []
-        #vals = []
-        #for k in self.get_list_of_columns(table):
-        #    tmp = sample.get(k,None)
-        #    if tmp is not None:
-        #        cols.append(k)
-        #        vals.append(tmp)
         cmd = 'INSERT IGNORE INTO {}.`{table}` ({cols}) VALUES ({vals})'.\
               format(self._dbname,
                      table=table,

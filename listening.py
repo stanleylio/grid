@@ -18,6 +18,7 @@ from cred import cred
 
 
 logging.basicConfig(level=logging.INFO)
+logging.getLogger('pika').setLevel(logging.WARNING)
 
 
 nodeid = socket.gethostname()
@@ -88,7 +89,6 @@ class P(xmlrpc.XMLRPC):
             return 1    # safe defaults? where to store them? boundaries? TODO TODO TODO
     
 
-logging.info(__file__ + ' is ready')
 credentials = pika.PlainCredentials(user,passwd)
 parameters = pika.ConnectionParameters(credentials=credentials)
 cc = protocol.ClientCreator(reactor,twisted_connection.TwistedProtocolConnection,parameters)
@@ -96,6 +96,7 @@ d = cc.connectTCP('localhost',5672)
 d.addCallback(lambda protocol: protocol.ready)
 d.addCallback(run)
 reactor.listenTCP(8000,server.Site(P()))
+logging.info(__file__ + ' is ready')
 reactor.run()
 
 #channel.basic_consume(callback,queue=queue_name)    # ,no_ack=True
