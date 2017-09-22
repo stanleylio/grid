@@ -8,7 +8,11 @@
 # University of Hawaii
 # All Rights Reserved. 2017
 import socket,traceback,sys,time,sqlite3,logging
+from os.path import exists
 from importlib import import_module
+
+
+logger = logging.getLogger(__name__)
 
 
 def import_node_config(node=None):
@@ -18,7 +22,10 @@ def import_node_config(node=None):
 
 
 class Config():
-    def __init__(self,dbfile):
+    def __init__(self,dbfile,create_if_not_exists=True):
+        logger.debug('dbfile={}'.format(dbfile))
+        if not (create_if_not_exists or exists(dbfile)):
+            raise RuntimeError('{} doesn\'t exist but create_if_not_exists=False'.format(dbfile))
         self.conn = sqlite3.connect(dbfile)
         self.conn.row_factory = sqlite3.Row
         self.cursor = self.conn.cursor()
@@ -40,7 +47,7 @@ class Config():
         """Attempt to set 'variable_name' to value 'new_value'.
 Return True if it new_value is different from variable's previous value; False otherwise"""
         if variable_name not in self.get_list_of_variables():
-            logging.debug('new variable {} created'.format(variable_name))
+            logger.debug('new variable {} created'.format(variable_name))
             cmd = '''CREATE TABLE IF NOT EXISTS `{variable_name}` (
                     `id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
                     `ts`	REAL NOT NULL,
@@ -52,10 +59,10 @@ Return True if it new_value is different from variable's previous value; False o
         try:
             tmp = self.get(variable_name)
         except LookupError:
-            logging.info('Variable {} is not yet defined'.format(variable_name))
+            logger.info('Variable {} is not yet defined'.format(variable_name))
             tmp = None
         if tmp is None or tmp != new_value:
-            logging.debug('variable {} set to new value {}'.format(variable_name,new_value))
+            logger.debug('variable {} set to new value {}'.format(variable_name,new_value))
             cmd = 'INSERT INTO `{variable_name}` (`ts`,`{variable_name}`) VALUES ({ts},{new_value})'.\
                   format(variable_name=variable_name,
                          new_value=new_value,
@@ -64,7 +71,7 @@ Return True if it new_value is different from variable's previous value; False o
             self.conn.commit()
             return True
         else:
-            logging.debug('{} is already {}'.format(variable_name,new_value))
+            logger.debug('{} is already {}'.format(variable_name,new_value))
             return False
 
     def is_defined(self,variable_name):
@@ -86,7 +93,7 @@ Return True if it new_value is different from variable's previous value; False o
 
 if '__main__' == __name__:
     exit()
-    logging.basicConfig(level=logging.DEBUG)
+    logger.basicConfig(level=logging.DEBUG)
     
     c = Config('config.db')
     print(c.get('sample_interval_second'))
