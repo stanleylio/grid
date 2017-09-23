@@ -40,7 +40,7 @@ class Config():
         """Attempt to set 'variable_name' to value 'new_value'.
 Return True if it new_value is different from variable's previous value; False otherwise"""
         if variable_name not in self.get_list_of_variables():
-            logging.debug('new variable {} created'.format(variable_name))
+            logging.warning('new variable {} created'.format(variable_name))
             cmd = '''CREATE TABLE IF NOT EXISTS `{variable_name}` (
                     `id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
                     `ts`	REAL NOT NULL,
