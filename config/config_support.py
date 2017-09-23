@@ -47,7 +47,7 @@ class Config():
         """Attempt to set 'variable_name' to value 'new_value'.
 Return True if it new_value is different from variable's previous value; False otherwise"""
         if variable_name not in self.get_list_of_variables():
-            logging.warning('new variable {} created'.format(variable_name))
+            logging.debug('new variable {} created'.format(variable_name))
             cmd = '''CREATE TABLE IF NOT EXISTS `{variable_name}` (
                     `id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
                     `ts`	REAL NOT NULL,
@@ -57,10 +57,18 @@ Return True if it new_value is different from variable's previous value; False o
             self.conn.commit()
 
         try:
+            new_value = float(new_value)    # miss static typing yet?
+        except ValueError:
+            raise ValueError('New_value must be a number (int or float). Got: {} of type {}'.\
+                             format(new_value,type(new_value)))
+
+        try:
             tmp = self.get(variable_name)
         except LookupError:
-            logger.info('Variable {} is not yet defined'.format(variable_name))
+            logger.debug('Variable {} is not yet defined'.format(variable_name))
             tmp = None
+        logger.debug('present: {}, new: {}'.format(tmp,new_value))
+        logger.debug(tmp != new_value)
         if tmp is None or tmp != new_value:
             logger.debug('variable {} set to new value {}'.format(variable_name,new_value))
             cmd = 'INSERT INTO `{variable_name}` (`ts`,`{variable_name}`) VALUES ({ts},{new_value})'.\

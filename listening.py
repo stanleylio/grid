@@ -71,6 +71,8 @@ def read(queue_object):
                     logging.info('Attempt to set {} to {}'.format(k,d[k]))
                     if config.set(k,d[k]):
                         logging.info('{} changed to {}'.format(k,d[k]))
+                    else:
+                        logging.info('No change for {}'.format(k))
                 
             #ch.basic_ack(delivery_tag=method.delivery_tag)
             yield ch.basic_ack(delivery_tag=method.delivery_tag)
