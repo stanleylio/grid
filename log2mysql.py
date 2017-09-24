@@ -12,6 +12,7 @@ from os.path import expanduser,basename
 sys.path.append(expanduser('~'))
 from twisted.internet import defer,reactor,protocol,task
 from twisted.internet.task import LoopingCall
+from twisted.python import log
 from pika.adapters import twisted_connection
 from parse_support import pretty_print
 from storage import storage
@@ -19,7 +20,9 @@ from cred import cred
 
 
 logging.basicConfig(level=logging.DEBUG)
-logging.getLogger('pika').setLevel(logging.WARNING)
+logging.getLogger('pika').setLevel(logging.DEBUG)
+
+log.startLogging(sys.stdout)
 
 
 exchange_name = 'grid'
@@ -31,6 +34,19 @@ routing_key = '*.r'
 def init_storage():
     return storage()
 store = init_storage()
+
+
+# TODO
+def duh(err):
+    # the best I can do for now. need to learn Twisted Deferred and pika adapters etc.
+    logging.error(err)
+    reactor.stop()
+# OK so several options here.
+# 1. keep this as is
+# 2. revert back to while True and forgo async-commit()
+# 3. commit() on the N-th message
+#       what if the N-th message never came? the previous N-1 messages are not commited()
+#       commit() before exit doesn't solve this. messages will stay on queue until expire
 
 
 @defer.inlineCallbacks
@@ -46,7 +62,8 @@ def run(connection):
         yield channel.basic_qos(prefetch_count=5)
         queue_object,consumer_tag = yield channel.basic_consume(queue=queue_name,no_ack=False)
         l = task.LoopingCall(read,queue_object)
-        l.start(1e-5)                        # !!!!!
+        d = l.start(1e-5)                        # !!!!!
+        d.addErrback(duh)
     except:
         logging.exception('Cannot connect to local C&C exchange')
         sys.exit()
@@ -97,6 +114,10 @@ cc = protocol.ClientCreator(reactor,twisted_connection.TwistedProtocolConnection
 d = cc.connectTCP('localhost',5672)
 d.addCallback(lambda protocol: protocol.ready)
 d.addCallback(run)
+d.addErrback(duh)
+
+# is the async-commit() worth the complexity?
+
 LoopingCall(taskCommit).start(5)
 logging.info(__file__ + ' is ready')
 reactor.run()
