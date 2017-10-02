@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 # This taps into the local RabbitMQ exchange and store .samples msgs into MySQL
 #
-# Now commiting on fixed interval (every few seconds) instead of on every message.
-#
 # Stanley H.I. Lio
 # hlio@hawaii.edu
 # University of Hawaii
@@ -10,95 +8,74 @@
 import pika,socket,traceback,sys,time,math,MySQLdb,logging,json
 from os.path import expanduser,basename
 sys.path.append(expanduser('~'))
-from twisted.internet import defer,reactor,protocol,task
-from twisted.internet.task import LoopingCall
-from pika.adapters import twisted_connection
 from parse_support import pretty_print
 from storage import storage
 from cred import cred
 
 
-logging.basicConfig(level=logging.DEBUG)
-logging.getLogger('pika').setLevel(logging.WARNING)
+logging.basicConfig(level=logging.INFO)
 
 
-exchange_name = 'grid'
-queue_name = basename(__file__)
+exchange = 'grid'
 nodeid = socket.gethostname()
-routing_key = '*.r'
 
+credentials = pika.PlainCredentials(nodeid,cred['rabbitmq'])
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost',5672,'/',credentials))
+channel = connection.channel()
+#channel.queue_delete(queue='nameofqueue')
+#exit()
+
+channel.exchange_declare(exchange=exchange,exchange_type='topic',durable=True)
+result = channel.queue_declare(queue=basename(__file__),
+                               durable=True,
+                               arguments={'x-message-ttl':2**31-1}) # ~24 days.
+
+queue_name = result.method.queue
+channel.queue_bind(exchange=exchange,
+                   queue=queue_name,
+                   routing_key='*.r')
 
 def init_storage():
     return storage()
 store = init_storage()
 
-
-@defer.inlineCallbacks
-def run(connection):
-    try:
-        channel = yield connection.channel()
-        exchange = yield channel.exchange_declare(exchange=exchange_name,exchange_type='topic',durable=True)
-        queue = yield channel.queue_declare(queue=queue_name,
-                                            durable=True,
-                                            exclusive=False,
-                                            arguments={'x-message-ttl':2**31-1})    # ~24 days.
-        yield channel.queue_bind(exchange=exchange_name,queue=queue_name,routing_key=routing_key)
-        yield channel.basic_qos(prefetch_count=5)
-        queue_object,consumer_tag = yield channel.basic_consume(queue=queue_name,no_ack=False)
-        l = task.LoopingCall(read,queue_object)
-        l.start(1e-5)                        # !!!!!
-    except:
-        logging.exception('Cannot connect to local C&C exchange')
-        sys.exit()
-
-@defer.inlineCallbacks
-def read(queue_object):
-    ch,method,properties,body = yield queue_object.get()
-    if body:
-        global store
-        try:
-            logging.debug(body)
-            d = json.loads(body)
-            version = d.get('v',None)
-            if 1 == version:
-                #from = d['from']
-                d = d['d']
-                d['rt'] = time.time()
-                print('= = = = = = = = = = = = = = =')
-                pretty_print(d)
-
-                for k in d.keys():
-                    try:
-                        if math.isnan(d[k]):
-                            d[k] = None
-                    except TypeError:
-                        pass
-                #store.insert(properties.user_id,d)
-                store.insert(properties.user_id,d,autocommit=False)
-
-            else:
-                logging.debug('Unknown protocol version {}'.format(version))
-                pass
-            yield ch.basic_ack(delivery_tag=method.delivery_tag)
-        except MySQLdb.OperationalError:
-            traceback.print_exc()
-            store = init_storage()
-        except:
-            logging.exception(body)
-
-def taskCommit():
+#n6last_stored = 0
+def callback(ch,method,properties,body):
     global store
-    store.commit()
+    #print(method.routing_key,body)
+    try:
+        d = json.loads(body)
+        #version = d['v']
+        #from = d['from']
+        d = d['d']
+        d['rt'] = time.time()
+        print('= = = = = = = = = = = = = = =')
+        pretty_print(d)
+
+        for k in d.keys():
+            try:
+                if math.isnan(d[k]):
+                    d[k] = None
+            except TypeError:
+                pass
+
+        store.insert(properties.user_id,d)
+
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+    except MySQLdb.OperationalError:
+        traceback.print_exc()
+        store = init_storage()
+    except:
+        traceback.print_exc()
+        logging.exception(body)
+
+    #ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
-credentials = pika.PlainCredentials(nodeid,cred['rabbitmq'])
-parameters = pika.ConnectionParameters('localhost',5672,'/',credentials)
-cc = protocol.ClientCreator(reactor,twisted_connection.TwistedProtocolConnection,parameters)
-d = cc.connectTCP('localhost',5672)
-d.addCallback(lambda protocol: protocol.ready)
-d.addCallback(run)
-LoopingCall(taskCommit).start(5)
 logging.info(__file__ + ' is ready')
-reactor.run()
-store.commit()
+channel.basic_consume(callback,queue=queue_name)    # ,no_ack=True
+try:
+    channel.start_consuming()
+except KeyboardInterrupt:
+    logging.info('user interrupted')
 logging.info(__file__ + ' terminated')
