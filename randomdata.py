@@ -5,14 +5,14 @@
 # hlio@hawaii.edu
 # University of Hawaii
 # All Rights Reserved. 2017
-import os,sys,traceback,time,logging,pika,socket,json,xmlrpc.client
+import os,sys,traceback,time,logging,pika,socket,json
 from os.path import expanduser
 sys.path.append(expanduser('~'))
 from random import random
 from twisted.internet.task import LoopingCall
 from twisted.internet import reactor
 from cred import cred
-from config.config_support import import_node_config
+from config.config_support import import_node_config,Config
 from parse_support import pretty_print
 
 
@@ -38,6 +38,8 @@ user,passwd = nodeid,cred['rabbitmq']
 reconnect_delay_second = 10         # wait this many seconds before retrying connection
 config_check_interval_second = 1    # how often to check for config changes
 sample_interval_second = 1          # TODO: fail-safe default, min, max
+config_file = expanduser('~/config.db')
+config = Config(config_file)
 
 
 def mq_init():
@@ -89,14 +91,20 @@ def taskRandomGen():
 
 
 def taskCheckConfig():
+    global sample_interval_second
     try:
+        sample_interval_second = config.get('sample_interval_second')
+    except:
+        logging.exception()
+    
+    '''try:
         global sample_interval_second
         proxy = xmlrpc.client.ServerProxy('http://localhost:8000/')
         sample_interval_second = proxy.get_config('sample_interval_second')
     except (socket.error,ConnectionRefusedError) as e:
         logging.error('taskCheckConfig() failed (is proxy up?)')
     except:
-        logging.exception('wut?')
+        logging.exception('wut?')'''
     
 
 logging.info(__name__ + ' is ready')
