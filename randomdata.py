@@ -33,9 +33,9 @@ vargens = [random_var(380*random(),2*random()) for i in range(len(tags))]
 
 exchange = 'grid'
 nodeid = socket.gethostname()
-routing_key = nodeid + '.r'        # ignored for fanout exchange
+routing_key = nodeid + '.r'         # ignored for fanout exchange
 user,passwd = nodeid,cred['rabbitmq']
-reconnect_delay_second = 10         # seconds. wait this much before retrying connection
+reconnect_delay_second = 10         # wait this many seconds before retrying connection
 config_check_interval_second = 1    # how often to check for config changes
 sample_interval_second = 1          # TODO: fail-safe default, min, max
 

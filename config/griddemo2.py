@@ -7,6 +7,11 @@ conf = [
         'dbtag':'ts',
         'description':'Sample time (pi/bone RTC)',
     },
+    {
+        'dbtag':'TEMP',
+        'description':'ADE9000 Temperature',
+        'unit':'Deg.C',
+    },
 
     # RMS voltage for 3 phases (call it AVRMS, BVRMS, CVRMS)
     {
