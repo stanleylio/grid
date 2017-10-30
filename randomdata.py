@@ -17,6 +17,7 @@ from parse_support import pretty_print
 
 
 logging.basicConfig(level=logging.INFO)
+logging.getLogger('pika').setLevel(logging.WARNING)
 
 
 conf = import_node_config().conf
@@ -95,7 +96,7 @@ def taskCheckConfig():
     try:
         sample_interval_second = config.get('sample_interval_second')
     except:
-        logging.exception()
+        logging.exception('Error in taskCheckConfig()')
     
     '''try:
         global sample_interval_second
