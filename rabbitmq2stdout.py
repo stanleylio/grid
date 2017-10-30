@@ -17,10 +17,11 @@ from config.config_support import Config
 from cred import cred
 
 
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('pika').setLevel(logging.DEBUG)
 
 
-exchange_name = 'grid_cnc'
+exchange_name = 'grid'
 queue_name = 'rabbitmq2stdout'
 nodeid = socket.gethostname()
 user,passwd = nodeid,cred['rabbitmq']
@@ -29,7 +30,7 @@ user,passwd = nodeid,cred['rabbitmq']
 @defer.inlineCallbacks
 def run(connection):
     channel = yield connection.channel()
-    exchange = yield channel.exchange_declare(exchange=exchange_name,exchange_type='fanout',durable=True)
+    exchange = yield channel.exchange_declare(exchange=exchange_name,exchange_type='topic',durable=True)
     queue = yield channel.queue_declare(queue=queue_name,durable=False,exclusive=True,arguments={'x-message-ttl': 24*3600*1000})
     yield channel.queue_bind(exchange=exchange_name,queue=queue_name)
     yield channel.basic_qos(prefetch_count=5)

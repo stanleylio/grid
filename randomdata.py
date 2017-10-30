@@ -97,6 +97,7 @@ def taskCheckConfig():
         sample_interval_second = config.get('sample_interval_second')
     except:
         logging.exception('Error in taskCheckConfig()')
+        sample_interval_second = 1  # failsafe
     
     '''try:
         global sample_interval_second

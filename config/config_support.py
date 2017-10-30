@@ -101,9 +101,12 @@ Return True if it new_value is different from variable's previous value; False o
 
 if '__main__' == __name__:
     exit()
-    logger.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     
     c = Config('../../config.db')
-    print(c.get('sample_interval_second'))
+    try:
+        print(c.get('sample_interval_second'))
+    except LookupError:
+        pass
     c.set('sample_interval_second',1)
     print(c.get('sample_interval_second'))
