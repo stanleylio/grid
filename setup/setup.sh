@@ -44,11 +44,10 @@ wget https://github.com/rabbitmq/rabbitmq-server/releases/download/rabbitmq_v3_6
 sudo dpkg -i rabbitmq-server_3.6.12-1_all.deb
 sudo apt -f install -y
 sudo dpkg -i rabbitmq-server_3.6.12-1_all.deb
-#sudo rabbitmqctl add_user grid password here
-#sudo rabbitmqctl set_permissions grid ".*" ".*" ".*"
-#sudo rabbitmqctl set_user_tags grid administrator
-#sudo rabbitmqctl list_user_permissions grid
+#sudo rabbitmqctl add_user $HOSTNAME password here
+#sudo rabbitmqctl set_permissions $HOSTNAME -p grid ".*" ".*" ".*"
+#sudo rabbitmqctl set_user_tags $HOSTNAME administrator
+#sudo rabbitmqctl list_user_permissions $HOSTNAME
 sudo rabbitmq-plugins enable rabbitmq_management
 sudo rabbitmq-plugins enable rabbitmq_shovel
 sudo rabbitmq-plugins enable rabbitmq_shovel_management
-
