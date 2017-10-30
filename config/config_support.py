@@ -103,11 +103,7 @@ if '__main__' == __name__:
     exit()
     logger.basicConfig(level=logging.DEBUG)
     
-    c = Config('config.db')
+    c = Config('../../config.db')
     print(c.get('sample_interval_second'))
-    c.set('sample_interval_second',0.1)
+    c.set('sample_interval_second',1)
     print(c.get('sample_interval_second'))
-
-    print(c.get('AVTHD_P'))
-    c.set('AVTHD_P',-1)
-    print(c.get('AVTHD_P'))

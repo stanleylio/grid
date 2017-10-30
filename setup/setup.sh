@@ -45,9 +45,11 @@ sudo dpkg -i rabbitmq-server_3.6.12-1_all.deb
 sudo apt -f install -y
 sudo dpkg -i rabbitmq-server_3.6.12-1_all.deb
 #sudo rabbitmqctl add_user $HOSTNAME password here
+#sudo rabbitmqctl add_vhost grid
 #sudo rabbitmqctl set_permissions $HOSTNAME -p grid ".*" ".*" ".*"
 #sudo rabbitmqctl set_user_tags $HOSTNAME administrator
 #sudo rabbitmqctl list_user_permissions $HOSTNAME
+sudo rabbitmqctl delete_user guest
 sudo rabbitmq-plugins enable rabbitmq_management
 sudo rabbitmq-plugins enable rabbitmq_shovel
 sudo rabbitmq-plugins enable rabbitmq_shovel_management
