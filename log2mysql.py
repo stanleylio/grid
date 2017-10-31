@@ -16,11 +16,12 @@ from cred import cred
 logging.basicConfig(level=logging.INFO)
 
 
+vhost = 'grid'
 exchange = 'grid'
 nodeid = socket.gethostname()
 
 credentials = pika.PlainCredentials(nodeid,cred['rabbitmq'])
-connection = pika.BlockingConnection(pika.ConnectionParameters('localhost',5672,'/',credentials))
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost',5672,vhost,credentials))
 channel = connection.channel()
 #channel.queue_delete(queue='nameofqueue')
 #exit()
@@ -29,7 +30,6 @@ channel.exchange_declare(exchange=exchange,exchange_type='topic',durable=True)
 result = channel.queue_declare(queue=basename(__file__),
                                durable=True,
                                arguments={'x-message-ttl':2**31-1}) # ~24 days.
-
 queue_name = result.method.queue
 channel.queue_bind(exchange=exchange,
                    queue=queue_name,
@@ -48,6 +48,7 @@ def callback(ch,method,properties,body):
         #version = d['v']
         #from = d['from']
         d = d['d']
+        assert 'rt' not in d
         d['rt'] = time.time()
         print('= = = = = = = = = = = = = = =')
         pretty_print(d)
