@@ -32,6 +32,7 @@ def random_var(m,sd):
 vargens = [random_var(380*random(),2*random()) for i in range(len(tags))]
 
 
+vhost = 'grid'
 exchange = 'grid'
 nodeid = socket.gethostname()
 routing_key = nodeid + '.r'         # ignored for fanout exchange
@@ -45,7 +46,7 @@ config = Config(config_file)
 
 def mq_init():
     credentials = pika.PlainCredentials(user,passwd)
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost',5672,'/',credentials))
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost',5672,vhost,credentials))
     channel = connection.channel()
     channel.exchange_declare(exchange=exchange,exchange_type='topic',durable=True)
     return connection,channel
