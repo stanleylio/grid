@@ -7,18 +7,50 @@
 # hlio@hawaii.edu
 # University of Hawaii
 # All Rights Reserved. 2017
-import socket,traceback,sys,time,sqlite3,logging
-from os.path import exists
+import socket,traceback,sys,time,sqlite3,logging,re
+from os import listdir
+from os.path import join,exists,dirname,realpath,basename,splitext,abspath,isfile
 from importlib import import_module
 
 
 logger = logging.getLogger(__name__)
 
 
-def import_node_config(node=None):
-    if node is None:
-        node = socket.gethostname()
-    return import_module('config.{node}'.format(node=node))
+# what a mess.
+
+def import_node_config(device):
+    return import_module('grid.config.{device}'.\
+                         format(device=device.replace('-','_')))
+
+
+def get_list_of_devices():
+    def dironly(p):
+        return [f for f in listdir(p) if not isfile(join(p,f))]
+
+    def fileonly(p):
+        return [f for f in listdir(p) if isfile(join(p,f))]
+
+    config = {}
+    cdir = dirname(abspath(__file__))
+    
+    devices = fileonly(cdir)
+    devices = filter(lambda x: re.match('^grid_.+\.py$',x),devices)
+    devices = [d.split('.')[0] for d in devices]
+
+    # stronger but optional: module must contain the "name" attribute which is a string of the node's name
+    # TODO: move this to test. here we trust the config files.
+    def b(d):
+        c = import_node_config(d)
+        name = getattr(c,'name',None)
+        return name == d.replace('_','-')
+    devices = filter(lambda x: b(x),devices)
+    devices = [d.replace('_','-') for d in devices]
+    return devices
+
+
+def get_list_of_variables(device):
+    config = import_node_config(device)
+    return [c['dbtag'] for c in getattr(config,'conf',[])]
 
 
 class Config():
