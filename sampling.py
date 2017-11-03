@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 logging.getLogger('pika').setLevel(logging.WARNING)
 
 
-conf = import_node_config().conf
+conf = import_node_config(socket.gethostname()).conf
 tags = [c['dbtag'] for c in conf]
 
 

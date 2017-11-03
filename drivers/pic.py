@@ -1,4 +1,4 @@
-# Refactored version of "new_1.py".
+# Refactored version of "new_1.py" from Thai Tran.
 #
 # Stanley H.I. Lio
 # hlio@hawaii.edu
