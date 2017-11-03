@@ -2,17 +2,15 @@
 #
 # Stanley H.I. Lio
 # hlio@hawaii.edu
-import serial,struct,csv
-from datetime import datetime
+import serial, struct
 
 
 tags = ['FREQ',
         'AVRMS','AVFRMS','AIRMS','AIFRMS','AWATT','AFWATT','AFVAR',
         'BVRMS','BVFRMS','BIRMS','BIFRMS','BWATT','BFWATT','BFVAR',
         'CVRMS','CVFRMS','CIRMS','CIFRMS','CWATT','CFWATT','CFVAR',
-        'TPMON',
-        'ts_pic']
-
+        'TPMON']
+max_retry = len(tags)*4
 
 class PIC:
     def __init__(self):
@@ -21,27 +19,24 @@ class PIC:
 
     def read(self):
         """Sample all variables and return as a dictionary."""
-        self._sync()
-        d = {}
-        for key in tags:
-            pic_response = self.pic.read(4)
-            if 'ts_pic' == key:
-                value = struct.unpack('<i',pic_response)[0]
-                time_now = datetime.fromtimestamp(value)
-            else:
-                value = struct.unpack('<f',pic_response)[0]
-
-            d[key] = value
-        return d
+        if self._sync():
+            d = {tag: struct.unpack('<f', self.pic.read(4))[0] for tag in tags}
+            d['ts_pic'] = struct.unpack('<i', self.pic.read(4))[0]
+            return d
+        return False
 
     def _sync(self):
-# TODO add max_retry to avoid potential deadlock
         count = 0
+        retry = 0
         while count < 4:
-            if b';' == self.pic.read(1):
+            if self.pic.read(1) == b';':
                 count += 1
             else:
                 count = 0
+                retry += 1
+                if retry == max_retry:
+                    return False
+        return True
 
     def _get_tags(self):
         return tags

@@ -55,34 +55,37 @@ def taskSample():
     global connection,channel
 
     d = pic.read()
-    d['ts_gw'] = time.time()
+    if d:        
+        d['ts_gw'] = time.time()
 
-    print('\x1b[2J\x1b[;H')
-    pretty_print(d)
-    
-    d = {'v':1,'from':nodeid,'d':d}
-    line = json.dumps(d,separators=(',',':'))
-    #continue
-    
-    try:
-        if connection is None or channel is None:
-            logging.info('Connection to local exchange is not open')
-            connection,channel = mq_init()
-            logging.info('Connection to local exchange re-established')
+        print('\x1b[2J\x1b[;H')
+        pretty_print(d)
+        
+        d = {'v':1,'from':nodeid,'d':d}
+        line = json.dumps(d,separators=(',',':'))
+        #continue
+        
+        try:
+            if connection is None or channel is None:
+                logging.info('Connection to local exchange is not open')
+                connection,channel = mq_init()
+                logging.info('Connection to local exchange re-established')
 
-        if connection is not None and channel is not None:
-            channel.basic_publish(exchange,
-                                  routing_key,
-                                  line,
-                                  properties=pika.BasicProperties(delivery_mode=2,
-                                                                  user_id=user,
-                                                                  content_type='text/plain',
-                                                                  expiration=str(7*24*3600*1000)))
-        else:
-            logging.error('wut?')
-    except pika.exceptions.ConnectionClosed:
-        connection,channel = None,None
-        time.sleep(reconnect_delay_second)
+            if connection is not None and channel is not None:
+                channel.basic_publish(exchange,
+                                      routing_key,
+                                      line,
+                                      properties=pika.BasicProperties(delivery_mode=2,
+                                                                      user_id=user,
+                                                                      content_type='text/plain',
+                                                                      expiration=str(7*24*3600*1000)))
+            else:
+                logging.error('wut?')
+        except pika.exceptions.ConnectionClosed:
+            connection,channel = None,None
+            time.sleep(reconnect_delay_second)
+    else: 
+        logging.info('no pic data; skipping this sample')
 
     reactor.callLater(sample_interval_second,taskSample)
 
