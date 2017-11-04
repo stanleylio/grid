@@ -11,7 +11,7 @@ from os.path import expanduser
 sys.path.append(expanduser('~'))
 from cred import cred
 from config.config_support import import_node_config#, Config
-from grid.drivers.pic import PIC
+from grid.drivers.pic import LocalPIC
 from parse_support import pretty_print
 
 # Settings
@@ -41,7 +41,7 @@ def mq_init():
 
 # Don't call mq_init() here or else the script will never run when network is down.
 
-pic = PIC()
+localpic = LocalPIC()
 channel = None
 properties = pika.BasicProperties(delivery_mode=2,
                                   user_id=user,
@@ -53,7 +53,7 @@ logging.getLogger('pika').setLevel(logging.WARNING)
 logging.info(__name__ + ' is ready')
 
 while True:
-    d = pic.read()       
+    d = localpic.read()       
     d['ts_gw'] = time.time()
 
     print('\x1b[2J\x1b[;H')

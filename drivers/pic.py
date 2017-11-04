@@ -10,7 +10,9 @@ tags = ['FREQ',
         'CVRMS', 'CVFRMS', 'CIRMS', 'CIFRMS', 'CWATT', 'CFWATT', 'CFVAR',
         'TPMON']
 
-class PIC:
+class LocalPIC(object):
+    """Class to retrieve data from the local power monitor's PIC via UART.
+    """
     def __init__(self):
         self.pic = serial.Serial(port='/dev/ttyS1', baudrate=115200, rtscts=True, timeout=1)
         self.pic.reset_input_buffer()
