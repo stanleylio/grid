@@ -61,11 +61,12 @@ while True:
     
     d = {'v':1, 'from':nodeid, 'd':d}
     
+    if channel is None:
+        logging.info('Connection to local exchange is not open')
+        channel = mq_init()
+        logging.info('Connection to local exchange re-established')
+
     try:
-        if channel is None:
-            logging.info('Connection to local exchange is not open')
-            channel = mq_init()
-            logging.info('Connection to local exchange re-established')
         channel.basic_publish(exchange,
                               routing_key,
                               body=json.dumps(d, separators=(',', ':')),
