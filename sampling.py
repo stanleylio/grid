@@ -11,7 +11,7 @@ from os.path import expanduser
 sys.path.append(expanduser('~'))
 from cred import cred
 from config.config_support import import_node_config#, Config
-from grid.drivers.pic import LocalPIC
+from grid.drivers.pic import LocalPIC, RemotePICs
 from parse_support import pretty_print
 
 # Settings
@@ -42,6 +42,7 @@ def mq_init():
 # Don't call mq_init() here or else the script will never run when network is down.
 
 localpic = LocalPIC()
+remotepics = RemotePICs()
 channel = None
 properties = pika.BasicProperties(delivery_mode=2,
                                   user_id=user,
@@ -51,6 +52,8 @@ properties = pika.BasicProperties(delivery_mode=2,
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('pika').setLevel(logging.WARNING)
 logging.info(__name__ + ' is ready')
+
+# TODO: Also receive data from remotepics.read(). Should this go into the event loop below or a loop in another thread?
 
 while True:
     d = localpic.read()       

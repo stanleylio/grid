@@ -35,6 +35,28 @@ class LocalPIC(object):
     def _get_tags(self):
         return tags + ['ts_pic']
 
+class RemotePICs(object):
+    """Class to retrieve data from remote power monitor PICs via XBee and UART.
+    """
+    def __init__(self):
+        self.pic = serial.Serial(port='/dev/ttyS2', baudrate=115200, rtscts=True, timeout=1)
+        self.pic.reset_input_buffer()
+
+    def read(self):
+        """Sample all variables and return as a dictionary."""
+        self._sync():
+        # TODO: Additional unpacking of XBee data frame
+        d = {tag: struct.unpack('<f', self.pic.read(4))[0] for tag in tags}
+        d['ts_pic'] = struct.unpack('<i', self.pic.read(4))[0]
+        return d # TODO: Return also the remote device id.
+
+    def _sync(self):
+       # TODO: Add data frame sync here.
+       pass
+
+    def _get_tags(self):
+        return tags + ['ts_pic']
+
 if '__main__' == __name__:
 
     pic = PIC()
