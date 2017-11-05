@@ -36,13 +36,13 @@ def mq_init():
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', 5672, vhost, credentials))
     channel = connection.channel()
     channel.exchange_declare(exchange=exchange, exchange_type='topic', durable=True)
-    return channel
+    return connection,channel
 
 # Don't call mq_init() here or else the script will never run when network is down.
 
 localpic = LocalPIC()
 assert set(localpic._get_tags()).issubset(set(tags))
-channel = None
+connection,channel = None,None
 properties = pika.BasicProperties(delivery_mode=2,
                                   user_id=user,
                                   content_type='text/plain',
@@ -63,7 +63,7 @@ while True:
     
     if channel is None:
         logging.info('Connection to local exchange is not open')
-        channel = mq_init()
+        connection,channel = mq_init()
         logging.info('Connection to local exchange re-established')
 
     try:
@@ -72,5 +72,9 @@ while True:
                               body=json.dumps(d, separators=(',', ':')),
                               properties=properties)
     except pika.exceptions.ConnectionClosed:
-        channel = None
+        connection,channel = None,None
         time.sleep(reconnect_delay_second)
+    except KeyboardInterrupt:
+        if connection is not None:
+            connection.close()
+        break
