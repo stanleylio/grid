@@ -18,15 +18,14 @@ from parse_support import pretty_print
 vhost = 'grid'
 exchange = 'grid'
 reconnect_delay_second = 10  # Wait at least this many seconds before retrying connection
+nodeid = socket.gethostname()
 
 # Verify that the socket is ready for the PIC's tags.
-conf = import_node_config(socket.gethostname()).conf
+conf = import_node_config(nodeid).conf
 tags = [c['dbtag'] for c in conf]
 #print(set(tags) - set(pic._get_tags()))
-assert set(pic._get_tags()).issubset(set(tags))
 
-nodeid = socket.gethostname()
-routing_key = nodeid + '.r'  # ignored for fanout exchange
+routing_key = nodeid + '.r'
 user = nodeid
 passwd = cred['rabbitmq']
 #config_file = expanduser('~/config.db')
@@ -42,6 +41,7 @@ def mq_init():
 # Don't call mq_init() here or else the script will never run when network is down.
 
 localpic = LocalPIC()
+assert set(localpic._get_tags()).issubset(set(tags))
 channel = None
 properties = pika.BasicProperties(delivery_mode=2,
                                   user_id=user,

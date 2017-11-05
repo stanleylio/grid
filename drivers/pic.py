@@ -19,7 +19,7 @@ class LocalPIC(object):
 
     def read(self):
         """Sample all variables and return as a dictionary."""
-        self._sync():
+        self._sync()
         d = {tag: struct.unpack('<f', self.pic.read(4))[0] for tag in tags}
         d['ts_pic'] = struct.unpack('<i', self.pic.read(4))[0]
         return d
