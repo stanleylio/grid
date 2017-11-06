@@ -10,7 +10,11 @@ class T2(unittest.TestCase):
 
     def test_get_list_of_variables(self):
         from grid.config.config_support import get_list_of_variables
-        print(get_list_of_variables('grid-gw-3'))
+        self.assertTrue('FREQ' in get_list_of_variables('grid-gw-3'))
+
+    def test_config_as_dict(self):
+        from grid.config.config_support import config_as_dict
+        print(config_as_dict())
 
 
 if '__main__' == __name__:
