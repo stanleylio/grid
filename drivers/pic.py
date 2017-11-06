@@ -2,27 +2,36 @@
 #
 # Stanley H.I. Lio
 # hlio@hawaii.edu
-import serial, struct
 
-tags = ['FREQ',
-        'AVRMS', 'AVFRMS', 'AIRMS', 'AIFRMS', 'AWATT', 'AFWATT', 'AFVAR',
-        'BVRMS', 'BVFRMS', 'BIRMS', 'BIFRMS', 'BWATT', 'BFWATT', 'BFVAR',
-        'CVRMS', 'CVFRMS', 'CIRMS', 'CIFRMS', 'CWATT', 'CFWATT', 'CFVAR',
-        'TPMON']
+import serial, struct, time
 
-class LocalPIC(object):
-    """Class to retrieve data from the local power monitor's PIC via UART.
+class LocalMeasurements(dict):
+    """Class to store local power monitor measurements and update them via UART
+
+    All initialization parameters of :class:`serial.Serial` are accepted. The
+    following initialization parameters have different defaults than in
+    :class:`serial.Serial`:
+
+    - *port* ('/dev/ttyS1')
+
+    - *baudrate* (115200)
+
+    - *rtscts* (*True*)
+
+    - *timeout* (1)
     """
-    def __init__(self):
-        self.pic = serial.Serial(port='/dev/ttyS1', baudrate=115200, rtscts=True, timeout=1)
-        self.pic.reset_input_buffer()
+    signals = ['FREQ',
+               'AVRMS', 'AVFRMS', 'AIRMS', 'AIFRMS', 'AWATT', 'AFWATT', 'AFVAR',
+               'BVRMS', 'BVFRMS', 'BIRMS', 'BIFRMS', 'BWATT', 'BFWATT', 'BFVAR',
+               'CVRMS', 'CVFRMS', 'CIRMS', 'CIFRMS', 'CWATT', 'CFWATT', 'CFVAR',
+               'TPMON']
 
-    def read(self):
-        """Sample all variables and return as a dictionary."""
-        self._sync():
-        d = {tag: struct.unpack('<f', self.pic.read(4))[0] for tag in tags}
-        d['ts_pic'] = struct.unpack('<i', self.pic.read(4))[0]
-        return d
+    def __init__(self, port='/dev/ttyS1', baudrate=115200, rtscts=True,
+                 timeout=1, **kwargs):
+        self.pic = serial.Serial(port=port, baudrate=baudrate, rtscts=rtscts,
+                                 timeout=timeout, **kwargs)
+        self.pic.reset_input_buffer()
+        self.refresh()
 
     def _sync(self):
         count = 0
@@ -32,34 +41,20 @@ class LocalPIC(object):
             else:
                 count = 0
 
-    def _get_tags(self):
-        return tags + ['ts_pic']
-
-class RemotePICs(object):
-    """Class to retrieve data from remote power monitor PICs via XBee and UART.
-    """
-    def __init__(self):
-        self.pic = serial.Serial(port='/dev/ttyS2', baudrate=115200, rtscts=True, timeout=1)
-        self.pic.reset_input_buffer()
-
-    def read(self):
-        """Sample all variables and return as a dictionary."""
-        self._sync():
-        # TODO: Additional unpacking of XBee data frame
-        d = {tag: struct.unpack('<f', self.pic.read(4))[0] for tag in tags}
-        d['ts_pic'] = struct.unpack('<i', self.pic.read(4))[0]
-        return d # TODO: Return also the remote device id.
-
-    def _sync(self):
-       # TODO: Add data frame sync here.
-       pass
-
-    def _get_tags(self):
-        return tags + ['ts_pic']
+    def refresh(self):
+        """Refresh the values of all signals and timestamps."""
+        self._sync()
+        for signal in self.signals:
+            self[signal] = struct.unpack('<f', self.pic.read(4))[0]
+        self['ts_pic'] = struct.unpack('<i', self.pic.read(4))[0]
+        self['ts_gw'] = time.time()
 
 if '__main__' == __name__:
 
-    pic = PIC()
+    from parse_support import pretty_print
+
+    measurements = LocalMeasurements()
     while True:
         print('- - - - -')
-        print(pic.read())
+        measurements.refresh()
+        pretty_print(measurements)

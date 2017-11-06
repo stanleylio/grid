@@ -5,13 +5,13 @@
 # University of Hawaii
 # All Rights Reserved. 2017
 
-import os, sys, time, logging, pika, socket, json
+import sys, time, logging, pika, socket, json
 
 from os.path import expanduser
 sys.path.append(expanduser('~'))
 from cred import cred
 from config.config_support import import_node_config#, Config
-from grid.drivers.pic import LocalPIC, RemotePICs
+from grid.drivers.pic import LocalMeasurements
 from parse_support import pretty_print
 
 # Settings
@@ -22,8 +22,9 @@ reconnect_delay_second = 10  # Wait at least this many seconds before retrying c
 # Verify that the socket is ready for the PIC's tags.
 conf = import_node_config(socket.gethostname()).conf
 tags = [c['dbtag'] for c in conf]
-#print(set(tags) - set(pic._get_tags()))
-assert set(pic._get_tags()).issubset(set(tags))
+#print(set(tags) - set(measurements.keys())
+measurements = LocalMeasurements()
+assert set(measurements.keys()).issubset(set(tags))
 
 nodeid = socket.gethostname()
 routing_key = nodeid + '.r'  # ignored for fanout exchange
@@ -41,8 +42,6 @@ def mq_init():
 
 # Don't call mq_init() here or else the script will never run when network is down.
 
-localpic = LocalPIC()
-remotepics = RemotePICs()
 channel = None
 properties = pika.BasicProperties(delivery_mode=2,
                                   user_id=user,
@@ -56,14 +55,10 @@ logging.info(__name__ + ' is ready')
 # TODO: Also receive data from remotepics.read(). Should this go into the event loop below or a loop in another thread?
 
 while True:
-    d = localpic.read()       
-    d['ts_gw'] = time.time()
+    measurements.refresh()
 
-    print('\x1b[2J\x1b[;H')
-    pretty_print(d)
-    
-    d = {'v':1, 'from':nodeid, 'd':d}
-    
+    d = {'v':1, 'from':nodeid, 'd':measurements}
+
     if channel is None:
         logging.info('Connection to local exchange is not open')
         channel = mq_init()
@@ -77,3 +72,6 @@ while True:
     except pika.exceptions.ConnectionClosed:
         channel = None
         time.sleep(reconnect_delay_second)
+
+    print('\x1b[2J\x1b[;H')
+    pretty_print(measurements)
