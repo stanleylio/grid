@@ -73,7 +73,7 @@ class Config():
 
     def set(self,variable_name,new_value):
         """Attempt to set 'variable_name' to value 'new_value'.
-Return True if it new_value is different from variable's previous value; False otherwise"""
+Return True if new_value is different from variable's previous value; False otherwise"""
         if variable_name not in self.get_list_of_variables():
             logging.debug('new variable {} created'.format(variable_name))
             cmd = '''CREATE TABLE IF NOT EXISTS `{variable_name}` (
