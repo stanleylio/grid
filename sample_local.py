@@ -3,11 +3,11 @@
 # Kevin Davies
 # kdavies@hawaii.edu
 
-from drivers.measurements import RemoteMeasurements
+from drivers.measurements import LocalMeasurements
 from drivers.messaging import MQ
 
 mq = MQ()
-measurements = RemoteMeasurements(callback=mq.publish)
+measurements = LocalMeasurements(callback=mq.publish)
 
 while True:
     measurements.refresh()
