@@ -1,8 +1,3 @@
-# Refactored version of "new_1.py" from Thai Tran.
-#
-# Stanley H.I. Lio
-# hlio@hawaii.edu
-
 import serial, struct, time
 
 from . import signals, gw_id
