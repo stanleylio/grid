@@ -1,4 +1,4 @@
-# Sample data from the local power monitor and publish it via RabbitMQ.
+# Sample data from the remote power monitors and publish it via RabbitMQ.
 #
 # Kevin Davies
 # kdavies@hawaii.edu
