@@ -1,3 +1,4 @@
+nodeid = 'a463acd7-32b9-4f55-b62a-5a8bc8adf1b4'
 name = 'grid-gw-1'
 location = 'CLASSIFIED'
 note = 'bbb-based, dummy data, norminal 1 sps'

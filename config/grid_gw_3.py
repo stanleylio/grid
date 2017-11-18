@@ -1,3 +1,4 @@
+nodeid = 'dc8a2315-77de-441d-b419-1d2ab1874978'
 name = 'grid-gw-3'
 location = 'CLASSIFIED'
 note = 'nanopi-based, "real" data, norminal 1 sps'
