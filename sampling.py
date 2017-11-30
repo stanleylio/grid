@@ -6,7 +6,6 @@
 # All Rights Reserved. 2017
 
 import os, sys, time, logging, pika, socket, json
-
 from os.path import expanduser
 sys.path.append(expanduser('~'))
 from cred import cred

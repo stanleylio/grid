@@ -15,7 +15,7 @@ sys.path.append(expanduser('~'))
 from pika import exceptions
 from pika.adapters import twisted_connection
 from twisted.internet import defer,reactor,protocol,task
-from twisted.web import xmlrpc,server
+#from twisted.web import xmlrpc,server
 from twisted.internet.defer import setDebugging
 from twisted.python import log
 from config.config_support import Config

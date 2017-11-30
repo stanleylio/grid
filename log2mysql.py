@@ -31,6 +31,7 @@ result = channel.queue_declare(queue=basename(__file__),
                                durable=True,
                                arguments={'x-message-ttl':2**31-1}) # ~24 days.
 queue_name = result.method.queue
+channel.basic_qos(prefetch_count=200)
 channel.queue_bind(exchange=exchange,
                    queue=queue_name,
                    routing_key='*.r')
